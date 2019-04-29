@@ -1,0 +1,1 @@
+# mirror-pause-amd64
