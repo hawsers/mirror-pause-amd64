@@ -41,16 +41,16 @@ git fetch --tags
 
 for i in "${missing_tags[@]}"; do
     #Check if tag exists
-    if [[ $(git tag -l ${i//\'}) ]]; then
-        continue
-    else
+    # if [[ $(git tag -l ${i//\'}) ]]; then
+    #     continue
+    # else
         echo "FROM k8s.gcr.io/${target_repository}:${i//\'}" > Dockerfile
         git commit -a -m ${i//\'} --allow-empty
 
         git tag -f -a ${i//\'} -m "Auto Tag:${i//\'}"
         # MUST Push one by one
         git push -v -f origin ${i//\'}
-    fi
+    # fi
 done
 
 # do not push commits
