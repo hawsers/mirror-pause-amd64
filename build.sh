@@ -39,17 +39,23 @@ git remote -v
 git checkout master
 git fetch --tags
 
+limitTrigger=10
 for i in "${missing_tags[@]}"; do
     #Check if tag exists
     # if [[ $(git tag -l ${i//\'}) ]]; then
     #     continue
     # else
-        echo "FROM k8s.gcr.io/${target_repository}:${i//\'}" > Dockerfile
-        git commit -a -m ${i//\'} --allow-empty
+        if [ $limitTrigger -gt 0 ]; then
+            echo "FROM k8s.gcr.io/${target_repository}:${i//\'}" > Dockerfile
+            git commit -a -m ${i//\'} --allow-empty
 
-        git tag -f -a ${i//\'} -m "Auto Tag:${i//\'}"
-        # MUST Push one by one
-        git push -v -f origin ${i//\'}
+            git tag -f -a ${i//\'} -m "Auto Tag:${i//\'}"
+            # MUST Push one by one
+            git push -v -f origin ${i//\'}
+            ((limitTrigger--))
+        else
+            break
+        fi
     # fi
 done
 
