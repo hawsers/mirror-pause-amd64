@@ -15,12 +15,31 @@ mirror_repository="hawsers/${target_repository}"
 
 target_tags=(`curl -k -s -X GET https://gcr.io/v2/google_containers/${target_repository}/tags/list | jq -r '.tags[] | @sh'`)
 
-mirror_tags=(`curl -sL https://hub.docker.com/v2/repositories/${mirror_repository}/tags/ | jq -r '.results[].name | @sh'`)
+# docker hub return paginated result
+mirrored_tags=()
+page=1
+
+while [ $page -gt 0 ]
+do     
+    dockerhub_response=`curl -sL https://hub.docker.com/v2/repositories/${mirror_repository}/tags?page=${page}`
+
+    next_page=`echo $dockerhub_response | jq  -r '.next'`
+
+    if [ ${next_page//\'} != 'null' ]; then
+        page=$((`echo $next_page | grep -o '[0-9]\+$'`))
+    else
+        page=0
+    fi
+
+    mirrored_tags+=(`echo $dockerhub_response | jq -r '.results[].name | @sh'`)
+    # mirrored_tags+=(`curl -sL https://hub.docker.com/v2/repositories/${mirror_repository}/tags?page=${page} 2>/dev/null | jq -r '.results[].name | @sh'`)
+
+done
 
 missing_tags=()
 for i in "${target_tags[@]}"; do
     skip=
-    for j in "${mirror_tags[@]}"; do
+    for j in "${mirrored_tags[@]}"; do
         [[ $i == $j ]] && { skip=1; break; }
     done
     [[ -n $skip ]] || missing_tags+=("$i")
