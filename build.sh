@@ -5,7 +5,7 @@
 # TARGET_REPOSITORY
 # API_TOKEN
 
-set -ex
+set -e
 
 # Monitor Repository
 target_repository="${TARGET_REPOSITORY}"
